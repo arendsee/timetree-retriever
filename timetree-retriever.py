@@ -14,18 +14,18 @@ def parser(argv=None):
     parser = argparse.ArgumentParser(
         prog=__prog__,
         usage="%s [options] <inputfile>" % __prog__,
-        description="Retrieves divergence times from TimeTree"
+        description="retrieves divergence times from TimeTree"
     )
     parser.add_argument(
         '--version',
-        help='Display version',
+        help='display version',
         action='version',
         version='%(prog)s {}'.format(__version__)
     )
     parser.add_argument(
         'taxa',
         nargs='*',
-        help='Two input taxa with "+" substituted for spaces'
+        help='two input taxa with "+" substituted for spaces'
     )
     parser.add_argument(
         '-f', '--file-input',
@@ -33,12 +33,18 @@ def parser(argv=None):
         help='TAB-delimited file containing input taxa'
     )
     parser.add_argument(
+        '-d', '--header',
+        help='print header',
+        default=False,
+        action='store_true'
+    )
+    parser.add_argument(
         '--cache',
-        help="Cache directory name",
+        help="cache directory name",
     )
     parser.add_argument(
         '--print_http',
-        help="Print all HTTP request",
+        help="print all HTTP request",
         action="store_true",
         default=False
     )
@@ -85,15 +91,21 @@ if __name__ == '__main__':
     if args.print_http:
         prettyprint_http(response)
 
+    header = '\t'.join(('taxon_a', 'taxon_b', 'mean', 'median', 'expert'))
     if args.file_input:
+        is_first = True
         for line in args.file_input:
             line = re.sub('[ _]', '+', line.strip())
             row = line.split('\t')
             out = retrieve(row[0], row[1])
+            if is_first and args.header:
+                print(header)
+                is_first = False
             print(out)
     elif args.taxa:
         if len(args.taxa) == 2:
             taxon_a, taxon_b = args.taxa
+            print(header)
             print(retrieve(taxon_a, taxon_b))
         else:
             print("You must provide two taxa with NO SPACES", file=sys.stderr)
