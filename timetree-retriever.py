@@ -23,10 +23,14 @@ def parser(argv=None):
         version='%(prog)s {}'.format(__version__)
     )
     parser.add_argument(
-        '-f', '--input',
+        'taxa',
+        nargs='*',
+        help='Two input taxa with "+" substituted for spaces'
+    )
+    parser.add_argument(
+        '-f', '--file-input',
         type=argparse.FileType('r'),
-        default=sys.stdin,
-        help='The taxon id of the ancestral node'
+        help='TAB-delimited file containing input taxa'
     )
     parser.add_argument(
         '--cache',
@@ -46,6 +50,29 @@ def prettyprint_http(response):
     for k,v in d.items():
         print("\t%s: %s" % (k,v), file=sys.stderr)
 
+def retrieve(taxon_a, taxon_b):
+    url = URL % (taxon_a, taxon_b)
+    response, content = h.request(url)
+    if args.print_http:
+        prettyprint_http(response)
+    res = re.sub('\n', '', content.decode())
+    mean, median, expert = '-', '-', '-'
+    for tr in re.findall('<tr.*?</tr', res):
+        try:
+            age = re.search('(\d+\.\d*) Mya', tr).groups()[0]
+            if '>Mean:<' in tr:
+                mean = age
+            elif '>Median:<' in tr:
+                median = age
+            elif '>Expert Result:<' in tr:
+                expert = age
+        except AttributeError:
+            pass
+    taxon_a = re.sub('\\+', '_', taxon_a)
+    taxon_b = re.sub('\\+', '_', taxon_b)
+    out = '\t'.join((taxon_a, taxon_b, mean, median, expert))
+    return(out)
+
 if __name__ == '__main__':
 
     args = parser()
@@ -58,27 +85,15 @@ if __name__ == '__main__':
     if args.print_http:
         prettyprint_http(response)
 
-    for line in args.input:
-        line = re.sub(' ', '+', line.strip())
-        row = line.split('\t')
-        url = URL % (row[0], row[1])
-        response, content = h.request(url)
-        if args.print_http:
-            prettyprint_http(response)
-        res = re.sub('\n', '', content.decode())
-        mean, median, expert = '-', '-', '-'
-        for tr in re.findall('<tr.*?</tr', res):
-            try:
-                age = re.search('(\d+\.\d*) Mya', tr).groups()[0]
-                if '>Mean:<' in tr:
-                    mean = age
-                elif '>Median:<' in tr:
-                    median = age
-                elif '>Expert Result:<' in tr:
-                    expert = age
-            except AttributeError:
-                pass
-        taxon_a = re.sub('\\+', '_', row[0])
-        taxon_b = re.sub('\\+', '_', row[1])
-        out = '\t'.join((taxon_a, taxon_b, mean, median, expert))
-        print(out)
+    if args.file_input:
+        for line in args.file_input:
+            line = re.sub('[ _]', '+', line.strip())
+            row = line.split('\t')
+            out = retrieve(row[0], row[1])
+            print(out)
+    elif args.taxa:
+        if len(args.taxa) == 2:
+            taxon_a, taxon_b = args.taxa
+            print(retrieve(taxon_a, taxon_b))
+        else:
+            print("You must provide two taxa with NO SPACES", file=sys.stderr)
