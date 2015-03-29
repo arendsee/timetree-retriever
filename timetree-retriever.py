@@ -66,7 +66,7 @@ def prettyprint_http(response):
 
 def retrieve(taxon_a, taxon_b):
     url = URL % (taxon_a, taxon_b)
-    response, content = h.request(url)
+    response, content = h.request(url, headers={ 'User-Agent': 'Mozilla/5.0' })
     if args.print_http:
         prettyprint_http(response)
     res = re.sub('\n', '', content.decode())
