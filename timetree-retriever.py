@@ -4,6 +4,7 @@ import argparse
 import httplib2
 import sys
 import re
+import time
 
 __version__ = '0.0'
 __prog__ = 'timetree-retriever'
@@ -37,6 +38,13 @@ def parser(argv=None):
         help='print header',
         default=False,
         action='store_true'
+    )
+    parser.add_argument(
+        '-s', '--sleep',
+        help="politely wait N seconds between downloads",
+        metavar="N",
+        type=int,
+        default=1
     )
     parser.add_argument(
         '--cache',
@@ -102,6 +110,7 @@ if __name__ == '__main__':
                 print(header)
                 is_first = False
             print(out)
+            time.sleep(args.sleep)
     elif args.taxa:
         if len(args.taxa) == 2:
             taxon_a, taxon_b = args.taxa
