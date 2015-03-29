@@ -107,14 +107,15 @@ if __name__ == '__main__':
             row = line.split('\t')
             out = retrieve(row[0], row[1])
             if is_first and args.header:
-                print(header)
+                print(header, file=sys.stdout)
                 is_first = False
-            print(out)
+            print(out, file=sys.stdout)
+            sys.stdout.flush()
             time.sleep(args.sleep)
     elif args.taxa:
         if len(args.taxa) == 2:
             taxon_a, taxon_b = args.taxa
-            print(header)
-            print(retrieve(taxon_a, taxon_b))
+            print(header, file=sys.stdout)
+            print(retrieve(taxon_a, taxon_b), file=sys.stdout)
         else:
             print("You must provide two taxa with NO SPACES", file=sys.stderr)
