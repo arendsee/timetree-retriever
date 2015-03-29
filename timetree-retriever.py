@@ -14,7 +14,7 @@ URL = 'http://www.timetree.org/index.php?taxon_a=%s&taxon_b=%s&submit=Search'
 def parser(argv=None):
     parser = argparse.ArgumentParser(
         prog=__prog__,
-        usage="%s [options] <inputfile>" % __prog__,
+        usage="%s [options] <taxon_a> <taxon_b>" % __prog__,
         description="retrieves divergence times from TimeTree"
     )
     parser.add_argument(
@@ -44,7 +44,7 @@ def parser(argv=None):
         help="politely wait N seconds between downloads",
         metavar="N",
         type=int,
-        default=1
+        default=0
     )
     parser.add_argument(
         '--cache',
